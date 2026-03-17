@@ -191,21 +191,21 @@ jobs:
     - name: Building OrangeFox
       run: |
         cd ${GITHUB_WORKSPACE}/OrangeFox/fox_${{ inputs.MANIFEST_BRANCH }}
+        
+        # سحب الواجهة الجديدة بس (لأن المحرك ملوش فرع زي ما الصور أثبتت)
+        echo "Fetching R12 New Source for Vendor..."
+        cd vendor/recovery
+        git fetch https://gitlab.com/OrangeFox/vendor/recovery fox_14.1-R12-new
+        git checkout FETCH_HEAD
+        cd ../..
+
         set +e
-        export FOX_BUILD_DEVICE=${{ inputs.DEVICE_NAME }}
-        if [[ ${{ inputs.USE_CCACHE }} == true ]]; then
-        export USE_CCACHE=1
-        export CCACHE_EXEC=/usr/bin/ccache
-        sed -i 's/return sandboxConfig\.working/return false/g' build/soong/ui/build/sandbox_linux.go
-        fi
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
         set -e
-        if [[ ${{ inputs.MANIFEST_BRANCH }} == '14.1' ]]; then
-        lunch twrp_${{ inputs.DEVICE_NAME }}-ap2a-eng && make clean && mka adbd ${{ inputs.BUILD_TARGET }}image
-        else
+        echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
         lunch twrp_${{ inputs.DEVICE_NAME }}-eng && make clean && mka adbd ${{ inputs.BUILD_TARGET }}image
-        fi
+        echo "END_TIME=$(date +%s)" >> $GITHUB_ENV
 
     - name: Set Release Properties
       run: |
