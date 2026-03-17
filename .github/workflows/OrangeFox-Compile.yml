@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       MANIFEST_BRANCH:
-        description: 'OrangeFox Manifest Branch'
+        description: 'OrangeFox Manifest Branch (12.1 = stabil, 14.1 = eksperimental Android 14)'
         required: true
         default: '12.1'
         type: choice
@@ -18,21 +18,25 @@ on:
         - 12.1
         - 14.1
       DEVICE_TREE:
-        description: 'OrangeFox Device Tree'
+        description: 'OrangeFox Device Tree URL (default untuk Xiaomi Zorn)'
         required: true
-        default: 'https://github.com/ymdzq/OFRP-device_xiaomi_mondrian'
+        default: 'https://github.com/rajauser305/android_device_xiaomi_zorn_OFRP'
       DEVICE_TREE_BRANCH:
-        description: 'OrangeFox Device Tree Branch'
+        description: |
+          OrangeFox Device Tree Branch 
+          (⚠️ Pastikan branch ini kompatibel dengan MANIFEST_BRANCH:
+           - Untuk MANIFEST_BRANCH=12.1 → gunakan branch fox_12.1 (jika ada)
+           - Untuk MANIFEST_BRANCH=14.1 → gunakan branch fox_14.1)
         required: true
-        default: 'fox_12.1-a16'
+        default: 'fox_14.1'  # default untuk zorn
       DEVICE_PATH:
-        description: 'Specify your Device Path'
+        description: 'Specify your Device Path (contoh: device/xiaomi/zorn)'
         required: true
-        default: 'device/xiaomi/mondrian'
+        default: 'device/xiaomi/zorn'
       DEVICE_NAME:
-        description: 'Specify your Device Codename'
+        description: 'Specify your Device Codename (contoh: zorn)'
         required: true
-        default: 'mondrian'
+        default: 'zorn'
       BUILD_TARGET:
         description: 'Specify your Build Target'
         required: true
@@ -64,7 +68,7 @@ on:
 
 jobs:
   build:
-    name: Build OrangeFox by ${{ github.actor }}
+    name: Build OrangeFox R12.1 (${{ inputs.MANIFEST_BRANCH }}) by ${{ github.actor }}
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -224,11 +228,16 @@ jobs:
         files: |
           OrangeFox/fox_${{ inputs.MANIFEST_BRANCH }}/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.img
           OrangeFox/fox_${{ inputs.MANIFEST_BRANCH }}/out/target/product/${{ inputs.DEVICE_NAME }}/OrangeFox*.zip
-        name: OrangeFox Recovery for ${{ inputs.DEVICE_NAME }} // ${{ env.BUILD_DATE }}
+        name: OrangeFox Recovery for ${{ inputs.DEVICE_NAME }} (R12.1-${{ inputs.MANIFEST_BRANCH }}) // ${{ env.BUILD_DATE }}
         tag_name: ${{ github.run_id }}
         body: |
-          ## OrangeFox Recovery Build - Unofficial
-          Build: fox_${{ inputs.MANIFEST_BRANCH }}
-          Device: [Device Tree/Branch](${{ env.DEVICE_TREE_URL }}/tree/${{ inputs.DEVICE_TREE_BRANCH }})
-          Commit: Most recent [commit](${{ env.DEVICE_TREE_URL }}/commit/${{ env.COMMIT_ID }}) during building.
-          
+          ## OrangeFox Recovery Build - R12.1 (${{ inputs.MANIFEST_BRANCH }})
+          - Device: `${{ inputs.DEVICE_NAME }}`
+          - Source Branch: `fox_${{ inputs.MANIFEST_BRANCH }}`
+          - Device Tree: [${{ inputs.DEVICE_TREE }}](${{ env.DEVICE_TREE_URL }}/tree/${{ inputs.DEVICE_TREE_BRANCH }})
+          - Device Tree Commit: `${{ env.COMMIT_ID }}`
+          - WLAN Support: `${{ inputs.ADD_WLAN_SUPPORT }}`
+          - Magisk Version: `${{ inputs.MAGISK_VERSION }}`
+          - Catatan: 
+            * Untuk MANIFEST_BRANCH=12.1, pastikan device tree branch kompatibel (misal fox_12.1).
+            * Untuk MANIFEST_BRANCH=14.1, gunakan branch fox_14.1 (tersedia di repo zorn).
